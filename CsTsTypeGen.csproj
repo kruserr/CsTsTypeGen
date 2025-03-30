@@ -9,7 +9,7 @@
     <!-- NuGet Package Properties -->
     <PackageId>CsTsTypeGen</PackageId>
     <Version>0.0.0</Version>
-    <Authors>Kruserr</Authors>
+    <Authors>kruserr</Authors>
     <Description>Generate TypeScript type definitions from C# classes for seamless C# to TypeScript integration in web projects.</Description>
     <Copyright>Copyright © 2025</Copyright>
     <PackageTags>typescript;generator;dotnet;webapi;typings</PackageTags>

@@ -8,7 +8,7 @@
     
     <!-- Package Metadata -->
     <PackageId>CsTsTypeGen</PackageId>
-    <Version>0.0.2</Version>
+    <Version>0.0.3</Version>
     <Authors>kruserr</Authors>
     <Description>Generate TypeScript type definitions from C# classes for seamless C# to TypeScript integration in web projects.</Description>
     <Copyright>Copyright © 2025</Copyright>

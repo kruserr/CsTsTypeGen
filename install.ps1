@@ -1,0 +1,17 @@
+param($installPath, $toolsPath, $package, $project)
+
+Write-Host "Installing CsTsTypeGen..."
+Write-Host "This package will automatically generate TypeScript definition files from your C# classes."
+Write-Host "The generation will happen automatically on build."
+Write-Host ""
+Write-Host "To configure the TypeScript definition generation, add these properties to your .csproj file:"
+Write-Host "<PropertyGroup>"
+Write-Host "  <!-- Set to false to disable TypeScript generation -->"
+Write-Host "  <GenerateTypeScriptDefinitions>true</GenerateTypeScriptDefinitions>"
+Write-Host "  <!-- Output path for TypeScript definitions -->"
+Write-Host "  <TypeScriptDefinitionsPath>wwwroot/js/typedefs.d.ts</TypeScriptDefinitionsPath>"
+Write-Host "  <!-- Source directory for C# files -->"
+Write-Host "  <CsTsSourceDirectory>$(MSBuildProjectDirectory)/..</CsTsSourceDirectory>"
+Write-Host "</PropertyGroup>"
+Write-Host ""
+Write-Host "Installation complete. TypeScript definitions will be generated on next build."

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <!-- Default TypeScript definition output path -->
+    <CsTsTypeGen_DefinitionsPath Condition="'$(CsTsTypeGen_DefinitionsPath)' == ''">$(MSBuildProjectDirectory)/typedefs.d.ts</CsTsTypeGen_DefinitionsPath>
+    <!-- Default source directory is the solution root -->
+    <CsTsTypeGen_SourceDirectory Condition="'$(CsTsTypeGen_SourceDirectory)' == ''">$(MSBuildProjectDirectory)/..</CsTsTypeGen_SourceDirectory>
+    <!-- Enable TypeScript generation by default -->
+    <CsTsTypeGen_GenerateDefinitions Condition="'$(CsTsTypeGen_GenerateDefinitions)' == ''">true</CsTsTypeGen_GenerateDefinitions>
+  </PropertyGroup>
+
+  <Target Name="GenerateTypeScriptDefinitions" AfterTargets="Build" Condition="'$(CsTsTypeGen_GenerateDefinitions)' == 'true'">
+    <Message Importance="high" Text="Generating TypeScript definitions..." />
+    <Message Importance="normal" Text="Source directory: $(CsTsTypeGen_SourceDirectory)" />
+    <Message Importance="normal" Text="Output file: $(CsTsTypeGen_DefinitionsPath)" />
+    <Exec Command="dotnet tool run cstsgen"
+          EnvironmentVariables="CsTsTypeGen_SourceDirectory=$(CsTsTypeGen_SourceDirectory);CsTsTypeGen_DefinitionsPath=$(CsTsTypeGen_DefinitionsPath);CsTsTypeGen_GenerateDefinitions=$(CsTsTypeGen_GenerateDefinitions)"
+          WorkingDirectory="$(MSBuildProjectDirectory)" />
+    <Message Importance="high" Text="✅ TypeScript definitions generated at: $(CsTsTypeGen_DefinitionsPath)" />
+  </Target>
+</Project>

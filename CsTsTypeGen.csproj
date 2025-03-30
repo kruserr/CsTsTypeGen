@@ -13,7 +13,7 @@
     <Description>Generate TypeScript type definitions from C# classes for seamless C# to TypeScript integration in web projects.</Description>
     <Copyright>Copyright © 2025</Copyright>
     <PackageTags>typescript;generator;dotnet;webapi;typings</PackageTags>
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageLicenseExpression>AGPLv3</PackageLicenseExpression>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageProjectUrl>https://github.com/kruserr/CsTsTypeGen</PackageProjectUrl>
     <RepositoryUrl>https://github.com/kruserr/CsTsTypeGen</RepositoryUrl>

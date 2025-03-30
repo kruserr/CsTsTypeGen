@@ -13,15 +13,14 @@
     <Description>Generate TypeScript type definitions from C# classes for seamless C# to TypeScript integration in web projects.</Description>
     <Copyright>Copyright © 2025</Copyright>
     <PackageTags>typescript;generator;dotnet;webapi;typings</PackageTags>
-    <PackageLicenseExpression>AGPLv3</PackageLicenseExpression>
+    <PackageLicenseExpression>AGPL-3.0-only</PackageLicenseExpression>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageProjectUrl>https://github.com/kruserr/CsTsTypeGen</PackageProjectUrl>
     <RepositoryUrl>https://github.com/kruserr/CsTsTypeGen</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <IncludeBuildOutput>true</IncludeBuildOutput>
     
-    <!-- Include the tool in the package -->
+    <!-- Tool Configuration -->
     <PackAsTool>true</PackAsTool>
     <ToolCommandName>cstsgen</ToolCommandName>
     
@@ -29,6 +28,11 @@
     <BuildOutputTargetFolder>tools</BuildOutputTargetFolder>
     <DevelopmentDependency>true</DevelopmentDependency>
     <NoPackageAnalysis>true</NoPackageAnalysis>
+    
+    <!-- Ensure proper package compatibility -->
+    <IsTool>true</IsTool>
+    <IncludeBuildOutput>true</IncludeBuildOutput>
+    <SuppressDependenciesWhenPacking>false</SuppressDependenciesWhenPacking>
   </PropertyGroup>
 
   <!-- Package Content -->

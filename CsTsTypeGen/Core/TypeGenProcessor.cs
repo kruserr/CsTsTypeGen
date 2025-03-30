@@ -103,6 +103,7 @@ namespace CsTsTypeGen.Core
                 }
 
                 string nsIndent = new string(' ', nsParts.Length * 2);
+                string currentNamespace = nsGroup.Key;
 
                 if (enumGroups.ContainsKey(nsGroup.Key))
                 {
@@ -134,7 +135,7 @@ namespace CsTsTypeGen.Core
 
                 foreach (ClassDeclarationSyntax classNode in nsGroup.Value)
                 {
-                    GenerateInterfaceForClass(sb, nsIndent, classNode, nestedClassMap);
+                    GenerateInterfaceForClass(sb, nsIndent, classNode, nestedClassMap, currentNamespace);
                 }
 
                 for (int i = nsParts.Length - 1; i >= 0; i--)
@@ -158,7 +159,8 @@ namespace CsTsTypeGen.Core
         /// Generates a TypeScript interface for a C# class
         /// </summary>
         private static void GenerateInterfaceForClass(StringBuilder sb, string nsIndent, ClassDeclarationSyntax classNode, 
-                                                     Dictionary<ClassDeclarationSyntax, List<ClassDeclarationSyntax>> nestedClassMap)
+                                                     Dictionary<ClassDeclarationSyntax, List<ClassDeclarationSyntax>> nestedClassMap,
+                                                     string currentNamespace)
         {
             string className = classNode.Identifier.Text;
             string comment = DocumentationHelper.GetCommentBlock(classNode);
@@ -174,7 +176,7 @@ namespace CsTsTypeGen.Core
             foreach (PropertyDeclarationSyntax prop in classNode.Members.OfType<PropertyDeclarationSyntax>())
             {
                 string propName = TypeMapper.ToCamelCase(prop.Identifier.Text);
-                string tsType = TypeMapper.MapType(prop.Type.ToString(), className);
+                string tsType = TypeMapper.MapType(prop.Type.ToString(), className, currentNamespace);
                 bool isNullable = DocumentationHelper.IsNullableProperty(prop);
                 bool isObsolete = DocumentationHelper.HasObsoleteAttribute(prop);
                 string propComment = DocumentationHelper.GetCommentBlock(prop);
@@ -216,7 +218,7 @@ namespace CsTsTypeGen.Core
                     foreach (PropertyDeclarationSyntax prop in nestedClass.Members.OfType<PropertyDeclarationSyntax>())
                     {
                         string propName = TypeMapper.ToCamelCase(prop.Identifier.Text);
-                        string tsType = TypeMapper.MapType(prop.Type.ToString(), className);
+                        string tsType = TypeMapper.MapType(prop.Type.ToString(), className, currentNamespace);
                         bool isNullable = DocumentationHelper.IsNullableProperty(prop);
                         bool isObsolete = DocumentationHelper.HasObsoleteAttribute(prop);
                         string propComment = DocumentationHelper.GetCommentBlock(prop);

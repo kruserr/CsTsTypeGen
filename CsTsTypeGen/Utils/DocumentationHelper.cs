@@ -34,9 +34,19 @@ namespace CsTsTypeGen.Utils
                             docLines.Add(summaryText);
                     }
                     
-                    // Add support for remarks
+                    // Process code blocks (including those inside remarks)
+                    var codeBlocks = doc.DescendantNodes().OfType<XmlElementSyntax>().Where(e => e.StartTag.Name.LocalName.Text == "code").ToList();
+                    foreach (var codeBlock in codeBlocks)
+                    {
+                        docLines.Add("");
+                        docLines.Add("```csharp");
+                        docLines.AddRange(ProcessCodeBlock(codeBlock));
+                        docLines.Add("```");
+                    }
+                    
+                    // Process remarks section content only if it doesn't contain code blocks
                     var remarks = doc.ChildNodes().OfType<XmlElementSyntax>().FirstOrDefault(e => e.StartTag.Name.LocalName.Text == "remarks");
-                    if (remarks != null)
+                    if (remarks != null && !remarks.DescendantNodes().OfType<XmlElementSyntax>().Any(e => e.StartTag.Name.LocalName.Text == "code"))
                     {
                         string remarksText = ExtractTextFromXmlNode(remarks);
                         if (!string.IsNullOrWhiteSpace(remarksText))
@@ -47,13 +57,6 @@ namespace CsTsTypeGen.Utils
                         }
                     }
                     
-                    foreach (var codeBlock in doc.DescendantNodes().OfType<XmlElementSyntax>().Where(e => e.StartTag.Name.LocalName.Text == "code"))
-                    {
-                        docLines.Add("");
-                        docLines.Add("```csharp");
-                        docLines.AddRange(ProcessCodeBlock(codeBlock));
-                        docLines.Add("```");
-                    }
                     string result = string.Join("\n", docLines);
                     result = Regex.Replace(result, @"</?code>|</?remarks>", "");
                     return result.Trim();

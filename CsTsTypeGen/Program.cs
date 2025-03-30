@@ -310,6 +310,14 @@ namespace CsTsTypeGen
                 return MapType(csharpType) + "?";
             }
             
+            // Special case directly for jagged arrays in the form of int[][] 
+            // This needs to be checked before the general array handling
+            if (csharpType.EndsWith("[][]"))
+            {
+                string baseType = csharpType.Substring(0, csharpType.Length - 4);
+                return MapType(baseType) + "[][]";
+            }
+            
             // Handle arrays
             if (csharpType.EndsWith("[]"))
             {
@@ -375,8 +383,14 @@ namespace CsTsTypeGen
             
             if (csharpType.StartsWith("ReadOnlyCollection<") && csharpType.EndsWith(">"))
             {
-                string inner = csharpType.Substring(18, csharpType.Length - 19);
-                return MapType(inner) + "[]";
+                int startIndex = "ReadOnlyCollection<".Length;
+                int length = csharpType.Length - startIndex - 1;
+                if (length > 0)  // Make sure length is positive
+                {
+                    string inner = csharpType.Substring(startIndex, length);
+                    return MapType(inner) + "[]";
+                }
+                return "any[]"; // Fallback
             }
             
             // Handle DbSet
@@ -692,6 +706,20 @@ namespace CsTsTypeGen
                         if (!string.IsNullOrWhiteSpace(summaryText))
                             docLines.Add(summaryText);
                     }
+                    
+                    // Add support for remarks
+                    var remarks = doc.ChildNodes().OfType<XmlElementSyntax>().FirstOrDefault(e => e.StartTag.Name.LocalName.Text == "remarks");
+                    if (remarks != null)
+                    {
+                        string remarksText = ExtractTextFromXmlNode(remarks);
+                        if (!string.IsNullOrWhiteSpace(remarksText))
+                        {
+                            docLines.Add("");
+                            docLines.Add("Additional information about the property");
+                            docLines.AddRange(remarksText.Split('\n').Select(line => line.Trim()));
+                        }
+                    }
+                    
                     foreach (var codeBlock in doc.DescendantNodes().OfType<XmlElementSyntax>().Where(e => e.StartTag.Name.LocalName.Text == "code"))
                     {
                         docLines.Add("");

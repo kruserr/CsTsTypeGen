@@ -6,9 +6,9 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     
-    <!-- NuGet Package Properties -->
+    <!-- Package Metadata -->
     <PackageId>CsTsTypeGen</PackageId>
-    <Version>0.0.1</Version>
+    <Version>0.0.2</Version>
     <Authors>kruserr</Authors>
     <Description>Generate TypeScript type definitions from C# classes for seamless C# to TypeScript integration in web projects.</Description>
     <Copyright>Copyright © 2025</Copyright>
@@ -18,29 +18,35 @@
     <PackageProjectUrl>https://github.com/kruserr/CsTsTypeGen</PackageProjectUrl>
     <RepositoryUrl>https://github.com/kruserr/CsTsTypeGen</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
+    
+    <!-- Package as an MSBuild extension -->
+    <DevelopmentDependency>true</DevelopmentDependency>
+    <IncludeContentInPack>true</IncludeContentInPack>
+    <IncludeBuildOutput>true</IncludeBuildOutput>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     
-    <!-- Tool Configuration -->
-    <PackAsTool>true</PackAsTool>
+    <!-- Configure as a .NET tool -->
+    <PackAsTool>false</PackAsTool>
     <ToolCommandName>cstsgen</ToolCommandName>
     
-    <!-- MSBuild integration -->
+    <!-- Make sure build targets are included -->
     <BuildOutputTargetFolder>tools</BuildOutputTargetFolder>
-    <DevelopmentDependency>true</DevelopmentDependency>
     <NoPackageAnalysis>true</NoPackageAnalysis>
-    
-    <!-- Ensure proper package compatibility -->
-    <IsTool>true</IsTool>
-    <IncludeBuildOutput>true</IncludeBuildOutput>
-    <SuppressDependenciesWhenPacking>false</SuppressDependenciesWhenPacking>
   </PropertyGroup>
 
   <!-- Package Content -->
   <ItemGroup>
+    <!-- Build targets for MSBuild integration -->
     <Content Include="build\**" PackagePath="build\" />
+    
+    <!-- Include the application binaries in the tools folder -->
+    <Content Include="$(OutputPath)\*.dll" PackagePath="tools\" />
+    <Content Include="$(OutputPath)\*.exe" PackagePath="tools\" Condition="Exists('$(OutputPath)\*.exe')" />
+    <Content Include="$(OutputPath)\*.json" PackagePath="tools\" />
+    <Content Include="$(OutputPath)\*.config" PackagePath="tools\" Condition="Exists('$(OutputPath)\*.config')" />
+    
+    <!-- Documentation -->
     <None Include="README.md" Pack="true" PackagePath="\" />
-    <None Include="install.ps1" Pack="true" PackagePath="tools\install.ps1" />
-    <None Include="uninstall.ps1" Pack="true" PackagePath="tools\uninstall.ps1" />
   </ItemGroup>
 
   <ItemGroup>

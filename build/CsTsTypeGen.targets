@@ -7,15 +7,23 @@
     <CsTsTypeGen_SourceDirectory Condition="'$(CsTsTypeGen_SourceDirectory)' == ''">$(MSBuildProjectDirectory)/..</CsTsTypeGen_SourceDirectory>
     <!-- Enable TypeScript generation by default -->
     <CsTsTypeGen_GenerateDefinitions Condition="'$(CsTsTypeGen_GenerateDefinitions)' == ''">true</CsTsTypeGen_GenerateDefinitions>
+    <!-- The path to the tool's executable DLL relative to this targets file -->
+    <CsTsTypeGenToolPath>$(MSBuildThisFileDirectory)../tools/CsTsTypeGen.dll</CsTsTypeGenToolPath>
   </PropertyGroup>
 
   <Target Name="GenerateTypeScriptDefinitions" AfterTargets="Build" Condition="'$(CsTsTypeGen_GenerateDefinitions)' == 'true'">
     <Message Importance="high" Text="Generating TypeScript definitions..." />
     <Message Importance="normal" Text="Source directory: $(CsTsTypeGen_SourceDirectory)" />
     <Message Importance="normal" Text="Output file: $(CsTsTypeGen_DefinitionsPath)" />
-    <Exec Command="dotnet tool run cstsgen"
+    
+    <Error Condition="!Exists('$(CsTsTypeGenToolPath)')" 
+           Text="CsTsTypeGen tool not found at expected path: $(CsTsTypeGenToolPath)" />
+    
+    <!-- Run the tool directly from the package's tools directory -->
+    <Exec Command="dotnet &quot;$(CsTsTypeGenToolPath)&quot; &quot;$(CsTsTypeGen_SourceDirectory)&quot; &quot;$(CsTsTypeGen_DefinitionsPath)&quot;"
           EnvironmentVariables="CsTsTypeGen_SourceDirectory=$(CsTsTypeGen_SourceDirectory);CsTsTypeGen_DefinitionsPath=$(CsTsTypeGen_DefinitionsPath);CsTsTypeGen_GenerateDefinitions=$(CsTsTypeGen_GenerateDefinitions)"
           WorkingDirectory="$(MSBuildProjectDirectory)" />
+    
     <Message Importance="high" Text="✅ TypeScript definitions generated at: $(CsTsTypeGen_DefinitionsPath)" />
   </Target>
 </Project>

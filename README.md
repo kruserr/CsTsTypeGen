@@ -2,7 +2,7 @@
 
 [![NuGet](https://img.shields.io/nuget/v/CsTsTypeGen.svg)](https://www.nuget.org/packages/CsTsTypeGen/)
 
-A streamlined tool to automatically generate TypeScript type definitions from C# classes in your .NET projects. Perfect for Web API projects with TypeScript frontends.
+A streamlined tool to automatically generate TypeScript type definitions from C# classes in your .NET projects. Perfect for Web API projects with vanilla JavaScript frontends.
 
 ## Features
 

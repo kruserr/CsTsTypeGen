@@ -2,7 +2,10 @@
 
 [![NuGet](https://img.shields.io/nuget/v/CsTsTypeGen.svg)](https://www.nuget.org/packages/CsTsTypeGen/)
 
-A streamlined tool to automatically generate TypeScript type definitions from C# classes in your .NET projects. Perfect for Web API projects with vanilla JavaScript frontends.
+A streamlined tool to generate a typedefs.d.ts TypeScript type definitions file from all of your C# types in the entire codebase.
+
+Works with vanilla no build js and the built in ts lsp in vs code intellisense.
+With this tool you can have your types defined in your C# code, use DTO + json + http to send data directly to the frontend, annotate the types on the frontend with jsdoc, and get autocomplete for your js code.
 
 ## Features
 
@@ -10,7 +13,6 @@ A streamlined tool to automatically generate TypeScript type definitions from C#
 - **Seamless Integration**: Works with MSBuild and requires minimal configuration
 - **Comprehensive Type Mapping**: Handles C# classes, interfaces, enums, and properties
 - **Documentation Support**: Preserves C# XML documentation as JSDoc comments
-- **Entity Framework Support**: Special handling for DbSet<T> and other collection types
 - **Nullable Support**: Preserves nullability information from C#
 
 ## Installation
@@ -24,11 +26,13 @@ dotnet add package CsTsTypeGen
 
 After installing the package, TypeScript definitions will be generated automatically when you build your project. The default output file is `typedefs.d.ts` in your project directory.
 
-To use the generated TypeScript definitions in your JavaScript/TypeScript files, add this reference at the top:
-
+To use the generated TypeScript definitions in your JavaScript/TypeScript files, add the reference at the top, with your correct path, and add a type annotation with your type:
 ```javascript
-/// <reference path="./typedefs.d.ts" />
-// @ts-check  // Optional: enables TypeScript checking in JS files
+/// <reference path="../../typedefs.d.ts" />
+// @ts-check
+
+/** @type {Ui.Components.MetricsData} */
+let chartData = null;
 ```
 
 ## Configuration

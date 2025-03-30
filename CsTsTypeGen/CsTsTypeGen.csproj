@@ -9,7 +9,7 @@
     
     <!-- Package Metadata -->
     <PackageId>CsTsTypeGen</PackageId>
-    <Version>0.0.3</Version>
+    <Version>0.0.4</Version>
     <Authors>kruserr</Authors>
     <Description>A streamlined tool to generate a typedefs.d.ts TypeScript type definitions file from all of your C# types in the entire codebase</Description>
     <Copyright>Copyright © kruserr</Copyright>

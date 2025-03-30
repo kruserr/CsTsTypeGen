@@ -7,8 +7,10 @@
     <CsTsTypeGen_SourceDirectory Condition="'$(CsTsTypeGen_SourceDirectory)' == ''">$(MSBuildProjectDirectory)/..</CsTsTypeGen_SourceDirectory>
     <!-- Enable TypeScript generation by default -->
     <CsTsTypeGen_GenerateDefinitions Condition="'$(CsTsTypeGen_GenerateDefinitions)' == ''">true</CsTsTypeGen_GenerateDefinitions>
-    <!-- The path to the tool's executable DLL relative to this targets file -->
+    <!-- The path to the tool's executable relative to the package root -->
     <CsTsTypeGenToolPath>$(MSBuildThisFileDirectory)../tools/CsTsTypeGen.dll</CsTsTypeGenToolPath>
+    <!-- Fallback paths for compatibility -->
+    <CsTsTypeGenToolPathFallback>$(MSBuildThisFileDirectory)../tools/net9.0/CsTsTypeGen.dll</CsTsTypeGenToolPathFallback>
   </PropertyGroup>
 
   <Target Name="GenerateTypeScriptDefinitions" AfterTargets="Build" Condition="'$(CsTsTypeGen_GenerateDefinitions)' == 'true'">
@@ -16,11 +18,19 @@
     <Message Importance="normal" Text="Source directory: $(CsTsTypeGen_SourceDirectory)" />
     <Message Importance="normal" Text="Output file: $(CsTsTypeGen_DefinitionsPath)" />
     
-    <Error Condition="!Exists('$(CsTsTypeGenToolPath)')" 
-           Text="CsTsTypeGen tool not found at expected path: $(CsTsTypeGenToolPath)" />
+    <!-- Check if the tool exists at the primary path -->
+    <PropertyGroup>
+      <CsTsTypeGenToolExists Condition="Exists('$(CsTsTypeGenToolPath)')">true</CsTsTypeGenToolExists>
+      <CsTsTypeGenToolExists Condition="!Exists('$(CsTsTypeGenToolPath)') And Exists('$(CsTsTypeGenToolPathFallback)')">true</CsTsTypeGenToolExists>
+      <CsTsTypeGenToolToUse Condition="Exists('$(CsTsTypeGenToolPath)')">$(CsTsTypeGenToolPath)</CsTsTypeGenToolToUse>
+      <CsTsTypeGenToolToUse Condition="!Exists('$(CsTsTypeGenToolPath)') And Exists('$(CsTsTypeGenToolPathFallback)')">$(CsTsTypeGenToolPathFallback)</CsTsTypeGenToolToUse>
+    </PropertyGroup>
+    
+    <Error Condition="'$(CsTsTypeGenToolExists)' != 'true'" 
+           Text="CsTsTypeGen tool not found at expected paths: $(CsTsTypeGenToolPath) or $(CsTsTypeGenToolPathFallback)" />
     
     <!-- Run the tool directly from the package's tools directory -->
-    <Exec Command="dotnet &quot;$(CsTsTypeGenToolPath)&quot; &quot;$(CsTsTypeGen_SourceDirectory)&quot; &quot;$(CsTsTypeGen_DefinitionsPath)&quot;"
+    <Exec Command="dotnet &quot;$(CsTsTypeGenToolToUse)&quot; &quot;$(CsTsTypeGen_SourceDirectory)&quot; &quot;$(CsTsTypeGen_DefinitionsPath)&quot;"
           EnvironmentVariables="CsTsTypeGen_SourceDirectory=$(CsTsTypeGen_SourceDirectory);CsTsTypeGen_DefinitionsPath=$(CsTsTypeGen_DefinitionsPath);CsTsTypeGen_GenerateDefinitions=$(CsTsTypeGen_GenerateDefinitions)"
           WorkingDirectory="$(MSBuildProjectDirectory)" />
     

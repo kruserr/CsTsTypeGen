@@ -9,7 +9,7 @@
     
     <!-- Package Metadata -->
     <PackageId>CsTsTypeGen</PackageId>
-    <Version>0.0.4</Version>
+    <Version>0.0.5</Version>
     <Authors>kruserr</Authors>
     <Description>A streamlined tool to generate a typedefs.d.ts TypeScript type definitions file from all of your C# types in the entire codebase</Description>
     <Copyright>Copyright © kruserr</Copyright>
@@ -33,6 +33,7 @@
     <!-- Make sure build targets are included -->
     <BuildOutputTargetFolder>tools</BuildOutputTargetFolder>
     <NoPackageAnalysis>true</NoPackageAnalysis>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
   </PropertyGroup>
 
   <!-- Package Content -->
@@ -41,10 +42,11 @@
     <Content Include="build\**" PackagePath="build\" />
     
     <!-- Include the application binaries in the tools folder -->
-    <Content Include="$(OutputPath)\*.dll" PackagePath="tools\" />
-    <Content Include="$(OutputPath)\*.exe" PackagePath="tools\" Condition="Exists('$(OutputPath)\*.exe')" />
-    <Content Include="$(OutputPath)\*.json" PackagePath="tools\" />
-    <Content Include="$(OutputPath)\*.config" PackagePath="tools\" Condition="Exists('$(OutputPath)\*.config')" />
+    <None Include="$(OutputPath)\net9.0\**\*.dll" Pack="true" PackagePath="tools\" />
+    <None Include="$(OutputPath)\net9.0\*.exe" Pack="true" PackagePath="tools\" Condition="Exists('$(OutputPath)\net9.0\*.exe')" />
+    <None Include="$(OutputPath)\net9.0\*.dll" Pack="true" PackagePath="tools\" />
+    <None Include="$(OutputPath)\net9.0\*.json" Pack="true" PackagePath="tools\" />
+    <None Include="$(OutputPath)\net9.0\*.config" Pack="true" PackagePath="tools\" Condition="Exists('$(OutputPath)\net9.0\*.config')" />
     
     <!-- Documentation -->
     <None Include="README.md" Pack="true" PackagePath="\" />

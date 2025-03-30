@@ -83,8 +83,7 @@ CsTsTypeGen maps C# types to TypeScript types as follows:
 
 ## Develop
 ```sh
-dotnet build -c Release
-dotnet pack -c Release
+dotnet clean && dotnet build -c Release && dotnet pack -c Release
 ```
 
 ## License

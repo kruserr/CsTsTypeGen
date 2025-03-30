@@ -2,16 +2,17 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net8.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
+    <TargetFrameworks Condition=" '$(OS)' == 'Windows_NT'">net471;net462</TargetFrameworks>
+    <TargetFrameworks>$(TargetFrameworks);net9.0;net8.0;net6.0;netstandard2.0</TargetFrameworks>
+    <!-- <ImplicitUsings>enable</ImplicitUsings> -->
+    <!-- <Nullable>enable</Nullable> -->
     
     <!-- Package Metadata -->
     <PackageId>CsTsTypeGen</PackageId>
     <Version>0.0.3</Version>
     <Authors>kruserr</Authors>
-    <Description>Generate TypeScript type definitions from C# classes for seamless C# to TypeScript integration in web projects.</Description>
-    <Copyright>Copyright © 2025</Copyright>
+    <Description>A streamlined tool to generate a typedefs.d.ts TypeScript type definitions file from all of your C# types in the entire codebase</Description>
+    <Copyright>Copyright © kruserr</Copyright>
     <PackageTags>typescript;generator;dotnet;webapi;typings</PackageTags>
     <PackageLicenseExpression>AGPL-3.0-only</PackageLicenseExpression>
     <PackageReadmeFile>README.md</PackageReadmeFile>

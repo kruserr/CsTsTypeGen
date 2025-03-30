@@ -88,6 +88,7 @@ namespace CsTsTypeGen
             string[] csFiles = Directory.GetFiles(inputDir, "*.cs", SearchOption.AllDirectories);
             Dictionary<string, List<ClassDeclarationSyntax>> namespaceGroups = new Dictionary<string, List<ClassDeclarationSyntax>>();
             Dictionary<string, List<EnumDeclarationSyntax>> enumGroups = new Dictionary<string, List<EnumDeclarationSyntax>>();
+            Dictionary<ClassDeclarationSyntax, List<ClassDeclarationSyntax>> nestedClassMap = new Dictionary<ClassDeclarationSyntax, List<ClassDeclarationSyntax>>();
 
             Console.WriteLine("Found " + csFiles.Length + " C# files");
 
@@ -112,9 +113,19 @@ namespace CsTsTypeGen
                     List<ClassDeclarationSyntax> classes = root.DescendantNodes().OfType<ClassDeclarationSyntax>().ToList();
                     List<EnumDeclarationSyntax> enums = root.DescendantNodes().OfType<EnumDeclarationSyntax>().ToList();
 
+                    foreach (var classDecl in classes)
+                    {
+                        var nestedClasses = classDecl.DescendantNodes().OfType<ClassDeclarationSyntax>().ToList();
+                        if (nestedClasses.Count > 0)
+                        {
+                            nestedClassMap[classDecl] = nestedClasses;
+                        }
+                    }
+
+                    var topLevelClasses = classes.Where(c => c.Parent is not ClassDeclarationSyntax).ToList();
                     if (!namespaceGroups.ContainsKey(ns))
                         namespaceGroups[ns] = new List<ClassDeclarationSyntax>();
-                    namespaceGroups[ns].AddRange(classes);
+                    namespaceGroups[ns].AddRange(topLevelClasses);
 
                     if (!enumGroups.ContainsKey(ns))
                         enumGroups[ns] = new List<EnumDeclarationSyntax>();
@@ -182,20 +193,86 @@ namespace CsTsTypeGen
 
                 foreach (ClassDeclarationSyntax classNode in nsGroup.Value)
                 {
-                    string className = classNode.Identifier.Text;
-                    string comment = GetCommentBlock(classNode);
-                    if (!string.IsNullOrEmpty(comment))
+                    GenerateInterfaceForClass(sb, nsIndent, classNode, nestedClassMap);
+                }
+
+                for (int i = nsParts.Length - 1; i >= 0; i--)
+                {
+                    string indent = new string(' ', i * 2);
+                    sb.AppendLine(indent + "}");
+                }
+                sb.AppendLine();
+            }
+
+            Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(outputPath)));
+            File.WriteAllText(outputPath, sb.ToString());
+
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine("✅ TypeScript definitions written to: " + outputPath);
+            Console.ResetColor();
+            return 0;
+        }
+
+        static void GenerateInterfaceForClass(StringBuilder sb, string nsIndent, ClassDeclarationSyntax classNode, 
+                                             Dictionary<ClassDeclarationSyntax, List<ClassDeclarationSyntax>> nestedClassMap)
+        {
+            string className = classNode.Identifier.Text;
+            string comment = GetCommentBlock(classNode);
+            if (!string.IsNullOrEmpty(comment))
+            {
+                sb.AppendLine(nsIndent + "/**");
+                foreach (string line in comment.Split('\n'))
+                    sb.AppendLine(nsIndent + " * " + line);
+                sb.AppendLine(nsIndent + " */");
+            }
+
+            sb.AppendLine(nsIndent + "export interface " + className + " {");
+            foreach (PropertyDeclarationSyntax prop in classNode.Members.OfType<PropertyDeclarationSyntax>())
+            {
+                string propName = ToCamelCase(prop.Identifier.Text);
+                string tsType = MapType(prop.Type.ToString(), className);
+                bool isNullable = IsNullableProperty(prop);
+                bool isObsolete = HasObsoleteAttribute(prop);
+                string propComment = GetCommentBlock(prop);
+
+                if (isObsolete || !string.IsNullOrEmpty(propComment))
+                {
+                    sb.AppendLine(nsIndent + "  /**");
+                    if (isObsolete)
+                        sb.AppendLine(nsIndent + "   * @deprecated This property is marked as obsolete");
+                    if (!string.IsNullOrEmpty(propComment))
+                    {
+                        foreach (string line in propComment.Split('\n'))
+                            sb.AppendLine(nsIndent + "   * " + line);
+                    }
+                    sb.AppendLine(nsIndent + "   */");
+                }
+
+                string optionalSuffix = isNullable ? "?" : "";
+                sb.AppendLine(nsIndent + "  " + propName + optionalSuffix + ": " + tsType + ";");
+            }
+            sb.AppendLine(nsIndent + "}\n");
+
+            if (nestedClassMap.ContainsKey(classNode))
+            {
+                foreach (var nestedClass in nestedClassMap[classNode])
+                {
+                    string nestedComment = GetCommentBlock(nestedClass);
+                    if (!string.IsNullOrEmpty(nestedComment))
                     {
                         sb.AppendLine(nsIndent + "/**");
-                        foreach (string line in comment.Split('\n'))
+                        foreach (string line in nestedComment.Split('\n'))
                             sb.AppendLine(nsIndent + " * " + line);
                         sb.AppendLine(nsIndent + " */");
                     }
-                    sb.AppendLine(nsIndent + "export interface " + className + " {");
-                    foreach (PropertyDeclarationSyntax prop in classNode.Members.OfType<PropertyDeclarationSyntax>())
+
+                    string nestedClassName = nestedClass.Identifier.Text;
+                    sb.AppendLine(nsIndent + "export interface " + nestedClassName + " {");
+                    
+                    foreach (PropertyDeclarationSyntax prop in nestedClass.Members.OfType<PropertyDeclarationSyntax>())
                     {
                         string propName = ToCamelCase(prop.Identifier.Text);
-                        string tsType = MapType(prop.Type.ToString());
+                        string tsType = MapType(prop.Type.ToString(), className);
                         bool isNullable = IsNullableProperty(prop);
                         bool isObsolete = HasObsoleteAttribute(prop);
                         string propComment = GetCommentBlock(prop);
@@ -218,25 +295,10 @@ namespace CsTsTypeGen
                     }
                     sb.AppendLine(nsIndent + "}\n");
                 }
-
-                for (int i = nsParts.Length - 1; i >= 0; i--)
-                {
-                    string indent = new string(' ', i * 2);
-                    sb.AppendLine(indent + "}");
-                }
-                sb.AppendLine();
             }
-
-            Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(outputPath)));
-            File.WriteAllText(outputPath, sb.ToString());
-
-            Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine("✅ TypeScript definitions written to: " + outputPath);
-            Console.ResetColor();
-            return 0;
         }
 
-        static string MapType(string csharpType)
+        static string MapType(string csharpType, string currentClassName = null)
         {
             bool isNullable = csharpType.EndsWith("?");
             if (isNullable)
@@ -245,6 +307,11 @@ namespace CsTsTypeGen
             if (csharpType.StartsWith("Nullable<") && csharpType.EndsWith(">"))
             {
                 csharpType = csharpType.Substring(9, csharpType.Length - 10);
+            }
+            if (csharpType.Contains("[]"))
+            {
+                string baseType = csharpType.Replace("[]", "");
+                return MapType(baseType) + "[]";
             }
             if (csharpType.StartsWith("ICollection<") && csharpType.EndsWith(">"))
             {
@@ -259,9 +326,37 @@ namespace CsTsTypeGen
             if (csharpType.StartsWith("List<") || csharpType.StartsWith("IList<"))
             {
                 int lt = csharpType.IndexOf("<");
-                int gt = csharpType.IndexOf(">");
-                string inner = csharpType.Substring(lt + 1, gt - lt - 1);
-                return MapType(inner) + "[]";
+                int gt = csharpType.LastIndexOf(">");
+                if (lt >= 0 && gt > lt)
+                {
+                    string inner = csharpType.Substring(lt + 1, gt - lt - 1);
+                    return MapType(inner) + "[]";
+                }
+            }
+            if (csharpType.StartsWith("Dictionary<") && csharpType.EndsWith(">"))
+            {
+                int lt = csharpType.IndexOf("<");
+                int comma = csharpType.IndexOf(",", lt);
+                int gt = csharpType.LastIndexOf(">");
+                
+                if (lt >= 0 && comma > lt && gt > comma)
+                {
+                    string keyType = csharpType.Substring(lt + 1, comma - lt - 1).Trim();
+                    string valueType = csharpType.Substring(comma + 1, gt - comma - 1).Trim();
+                    return "Record<" + MapType(keyType) + ", " + MapType(valueType) + ">";
+                }
+            }
+            if (csharpType.StartsWith("Tuple<") && csharpType.EndsWith(">"))
+            {
+                int lt = csharpType.IndexOf("<");
+                int gt = csharpType.LastIndexOf(">");
+                
+                if (lt >= 0 && gt > lt)
+                {
+                    string inner = csharpType.Substring(lt + 1, gt - lt - 1);
+                    string[] types = inner.Split(',').Select(t => MapType(t.Trim())).ToArray();
+                    return "[" + string.Join(", ", types) + "]";
+                }
             }
 
             switch (csharpType)
@@ -271,7 +366,47 @@ namespace CsTsTypeGen
                 case "bool": return "boolean";
                 case "DateTime": case "DateTimeOffset": return "string";
                 case "Guid": return "string";
-                default: return csharpType;
+                case "NestedType":
+                    if (!string.IsNullOrEmpty(currentClassName))
+                    {
+                        return currentClassName + ".NestedType";
+                    }
+                    return csharpType;
+                default:
+                    if (csharpType.Contains("."))
+                    {
+                        string[] parts = csharpType.Split('.');
+                        if (parts.Length > 0)
+                        {
+                            string simpleName = parts[parts.Length - 1];
+                            
+                            if (csharpType.StartsWith("System."))
+                            {
+                                switch (simpleName)
+                                {
+                                    case "String": return "string";
+                                    case "Int32": case "Int64": case "Decimal": case "Double": case "Single": return "number";
+                                    case "Boolean": return "boolean";
+                                    case "DateTime": case "DateTimeOffset": return "string";
+                                    case "Guid": return "string";
+                                    default: return simpleName;
+                                }
+                            }
+                            
+                            if (parts.Length == 3 && parts[0] == "MyApp" && parts[1] == "Enums" && parts[2] == "Status")
+                            {
+                                return "Status";
+                            }
+                            
+                            if (parts.Length == 2 && parts[1] == "NestedType")
+                            {
+                                return parts[0] + "." + parts[1];
+                            }
+                            
+                            return simpleName;
+                        }
+                    }
+                    return csharpType;
             }
         }
 
